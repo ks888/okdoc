@@ -3,16 +3,21 @@
 
 How to create soft-link
 
-```bash
+```bashtest
 echo "Hello" >tmpfile
 ln -s tmpfile linkedfile
 ls -l linkedfile | grep '^l'
 rm linkedfile tmpfile
 ```
 
-Remove file
+Failed test
+
+```bashtest
+rm tmpfile
+```
+
+No test runner
 
 ```bash
-echo "Hello again" > tmpfile2
-rm tmpfile2
+ls .
 ```
