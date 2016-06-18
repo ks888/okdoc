@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"os"
 
 	"github.com/ks888/okdoc/testset"
 	"github.com/spf13/cobra"
@@ -17,12 +18,16 @@ var OkdocCmd = &cobra.Command{
 		}
 
 		filepath := args[0]
-		// check path
+		if _, err := os.Stat(filepath); err != nil {
+			return errors.New("File does not exist")
+		}
+
 		testSet := new(testset.TestSet)
 		testSet.AddTestFile(filepath)
 
 		testSet.RunAllTests()
 		testSet.PrintTestStats()
+
 		return nil
 	},
 }
