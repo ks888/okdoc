@@ -15,20 +15,25 @@ func init() {
 }
 
 func (runner bashtestRunner) Run(testCode string) *RunResult {
-	testScriptFile, err := ioutil.TempFile("", "okdoc_")
+	testDir, err := ioutil.TempDir("", "okdoc_")
+	if err != nil {
+		return &RunResult{false, true, "Failed to create test directory"}
+	}
+
+	testScriptFile, err := ioutil.TempFile(testDir, "script_")
 	if err != nil {
 		return &RunResult{false, true, "Failed to create temp file"}
 	}
 
-	_, err = testScriptFile.WriteString("set -ex\n")
-
-	_, err = testScriptFile.WriteString(testCode)
+	_, err = testScriptFile.WriteString("set -ex\n" + testCode)
 	if err != nil {
 		return &RunResult{false, true, "Failed to write test script to temp file"}
 	}
 
 	// 'out' includes stdout AND stderr
-	out, err := exec.Command(runner.command, testScriptFile.Name()).CombinedOutput()
+	cmd := exec.Command(runner.command, testScriptFile.Name())
+	cmd.Dir = testDir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		message := string(out)
 		message += "\n"
