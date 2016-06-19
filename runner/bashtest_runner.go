@@ -20,7 +20,7 @@ func (runner bashtestRunner) Run(testCode string) *RunResult {
 		return &RunResult{false, true, "Failed to create temp file"}
 	}
 
-	_, err = testScriptFile.WriteString("set -e\n")
+	_, err = testScriptFile.WriteString("set -ex\n")
 
 	_, err = testScriptFile.WriteString(testCode)
 	if err != nil {
