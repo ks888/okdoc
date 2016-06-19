@@ -3,7 +3,6 @@ package testset
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 
 	"github.com/ks888/okdoc/parser"
 	"github.com/ks888/okdoc/runner"
@@ -34,10 +33,9 @@ func (ts *TestSet) AddTestFile(path string) error {
 	md_content.Parse()
 
 	testFile := &TestFile{path: path}
-	filename := filepath.Base(path)
 
 	for i, codeBlock := range md_content.CodeBlocks {
-		testName := fmt.Sprintf("%s#%d", filename, i)
+		testName := fmt.Sprintf("%s#%d", path, i)
 		test := &Test{content: codeBlock, name: testName}
 		testFile.list = append(testFile.list, test)
 	}
@@ -55,6 +53,15 @@ func (ts *TestSet) RunAllTests() error {
 				test.result = &runner.RunResult{true, false, "No test runner"}
 			} else {
 				test.result = runnerInst.Run(test.content.Block)
+			}
+
+			if test.result.Success {
+				if test.result.HasRunner {
+					fmt.Printf("%s...ok\n", test.name)
+				}
+			} else {
+				fmt.Printf("%s...failed\n", test.name)
+				fmt.Printf("%s\n", test.result.Message)
 			}
 		}
 	}
@@ -79,15 +86,6 @@ func (ts *TestSet) PrintTestStats() {
 		}
 	}
 
+	fmt.Printf("\n============================\n")
 	fmt.Printf("%d of %d tests are successful! (Plus, %d tests have no test runner)\n", numTests-len(failedTests), numTests, numNoRunnerTests)
-	if len(failedTests) != 0 {
-		fmt.Printf("\nThe list of failed tests: \n")
-
-		for _, test := range failedTests {
-			fmt.Printf("====== %s ======\n", test.name)
-			fmt.Printf("%s\n", test.result.Message)
-			fmt.Printf("===============\n")
-		}
-	}
-
 }
