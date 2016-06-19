@@ -20,6 +20,8 @@ func (runner bashtestRunner) Run(testCode string) *RunResult {
 		return &RunResult{false, true, "Failed to create temp file"}
 	}
 
+	_, err = testScriptFile.WriteString("set -e\n")
+
 	_, err = testScriptFile.WriteString(testCode)
 	if err != nil {
 		return &RunResult{false, true, "Failed to write test script to temp file"}
@@ -28,9 +30,9 @@ func (runner bashtestRunner) Run(testCode string) *RunResult {
 	// 'out' includes stdout AND stderr
 	out, err := exec.Command(runner.command, testScriptFile.Name()).CombinedOutput()
 	if err != nil {
-		message := err.Error()
+		message := string(out)
 		message += "\n"
-		message += string(out)
+		message += err.Error()
 		return &RunResult{false, true, message}
 	} else {
 		return &RunResult{true, true, string(out)}
