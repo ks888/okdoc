@@ -3,9 +3,15 @@ package commands
 import (
 	"errors"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/ks888/okdoc/testset"
 	"github.com/spf13/cobra"
+)
+
+const (
+	docExt = "md"
 )
 
 var OkdocCmd = &cobra.Command{
@@ -16,18 +22,46 @@ var OkdocCmd = &cobra.Command{
 		if len(args) != 1 {
 			return errors.New("The number of args must be 1")
 		}
+		path := args[0]
 
-		filepath := args[0]
-		if _, err := os.Stat(filepath); err != nil {
-			return errors.New("File does not exist")
+		docs, err := collectDocs(path, docExt)
+		if err != nil {
+			return err
 		}
 
 		testSet := new(testset.TestSet)
-		testSet.AddTestFile(filepath)
+		for _, docpath := range docs {
+			testSet.AddTestFile(docpath)
+		}
 
 		testSet.RunAllTests()
 		testSet.PrintTestStats()
 
 		return nil
 	},
+}
+
+func collectDocs(path, ext string) ([]string, error) {
+	docs := make([]string, 128)
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if strings.HasSuffix(info.Name(), ext) {
+			docs = append(docs, path)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return docs, nil
 }
