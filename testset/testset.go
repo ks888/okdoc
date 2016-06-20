@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/fatih/color"
 	"github.com/ks888/okdoc/parser"
 	"github.com/ks888/okdoc/runner"
 )
@@ -22,6 +23,11 @@ type TestFile struct {
 type TestSet struct {
 	testFiles []*TestFile
 }
+
+var (
+	blue = color.New(color.FgBlue).SprintFunc()
+	red  = color.New(color.FgRed).SprintFunc()
+)
 
 func (ts *TestSet) AddTestFile(path string) error {
 	fileContent, err := ioutil.ReadFile(path)
@@ -57,10 +63,10 @@ func (ts *TestSet) RunAllTests() error {
 
 			if test.result.Success {
 				if test.result.HasRunner {
-					fmt.Printf("%s...ok\n", test.name)
+					fmt.Printf(blue("%s...ok\n"), test.name)
 				}
 			} else {
-				fmt.Printf("%s...failed\n", test.name)
+				fmt.Printf(red("%s...failed\n"), test.name)
 				fmt.Printf("%s\n", test.result.Message)
 			}
 		}
@@ -86,6 +92,9 @@ func (ts *TestSet) PrintTestStats() {
 		}
 	}
 
-	fmt.Printf("\n============================\n")
-	fmt.Printf("%d of %d tests are successful! (Plus, %d tests have no test runner)\n", numTests-len(failedTests), numTests, numNoRunnerTests)
+	col := blue
+	if len(failedTests) != 0 {
+		col = red
+	}
+	fmt.Printf(col("%d of %d tests are successful! (Plus, %d tests have no test runner)\n"), numTests-len(failedTests), numTests, numNoRunnerTests)
 }
