@@ -34,8 +34,8 @@ func (ts *TestSet) AddTestFile(path string) error {
 
 	testFile := &TestFile{path: path}
 
-	for i, codeBlock := range md_content.CodeBlocks {
-		testName := fmt.Sprintf("%s#%d", path, i)
+	for _, codeBlock := range md_content.CodeBlocks {
+		testName := fmt.Sprintf("%s#L%d", path, codeBlock.StartLine)
 		test := &Test{content: codeBlock, name: testName}
 		testFile.list = append(testFile.list, test)
 	}
