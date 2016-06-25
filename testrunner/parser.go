@@ -1,4 +1,4 @@
-package parser
+package testrunner
 
 import (
 	"regexp"
@@ -6,7 +6,7 @@ import (
 )
 
 type CodeBlock struct {
-	Lang      string
+	Command   string
 	Block     string
 	StartLine int
 }
@@ -25,13 +25,13 @@ func (md *Markdown) Parse() {
 		if len(match) != 3*2 {
 			break
 		}
-		lang := currStr[match[2]:match[3]]
+		cmd := currStr[match[2]:match[3]]
 		block := currStr[match[4]:match[5]]
 
 		relStartLine := strings.Count(currStr[:match[2]], "\n")
 		absStartLine := currLine + relStartLine
 
-		codeBlock := &CodeBlock{Lang: lang, Block: block, StartLine: absStartLine}
+		codeBlock := &CodeBlock{Command: cmd, Block: block, StartLine: absStartLine}
 		md.CodeBlocks = append(md.CodeBlocks, codeBlock)
 
 		if len(currStr) >= match[1] {

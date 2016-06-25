@@ -1,18 +1,16 @@
-package testset
+package testrunner
 
 import (
 	"fmt"
 	"io/ioutil"
 
 	"github.com/fatih/color"
-	"github.com/ks888/okdoc/parser"
-	"github.com/ks888/okdoc/runner"
 )
 
 type Test struct {
-	content *parser.CodeBlock
+	content *CodeBlock
 	name    string
-	result  *runner.RunResult
+	result  *TestResult
 }
 
 type TestFile struct {
@@ -35,12 +33,12 @@ func (ts *TestSet) AddTestFile(path string) error {
 		return err
 	}
 
-	md_content := &parser.Markdown{Content: string(fileContent)}
-	md_content.Parse()
+	mdContent := &Markdown{Content: string(fileContent)}
+	mdContent.Parse()
 
 	testFile := &TestFile{path: path}
 
-	for _, codeBlock := range md_content.CodeBlocks {
+	for _, codeBlock := range mdContent.CodeBlocks {
 		testName := fmt.Sprintf("%s#L%d", path, codeBlock.StartLine)
 		test := &Test{content: codeBlock, name: testName}
 		testFile.list = append(testFile.list, test)
@@ -53,13 +51,22 @@ func (ts *TestSet) AddTestFile(path string) error {
 func (ts *TestSet) RunAllTests() error {
 	for _, testFile := range ts.testFiles {
 		for _, test := range testFile.list {
-			runnerInst := runner.FindRunner(test.content.Lang)
+			cmd := test.content.Command
+			testCode := test.content.Block
 
-			if runnerInst == nil {
-				test.result = &runner.RunResult{true, false, "No test runner"}
-			} else {
-				test.result = runnerInst.Run(test.content.Block)
+			var err error
+			cmd, testCode, err = Convert(cmd, testCode)
+			if err != nil {
+				_, ok := err.(NoConverterError)
+				if ok {
+					test.result = &TestResult{true, false, err.Error()}
+					continue
+				} else {
+					return err
+				}
 			}
+
+			test.result = Run(cmd, testCode)
 
 			if test.result.Success {
 				if test.result.HasRunner {
@@ -77,7 +84,7 @@ func (ts *TestSet) RunAllTests() error {
 func (ts *TestSet) PrintTestStats() {
 	numTests := 0
 	numNoRunnerTests := 0
-	failedTests := make([]*Test, 0)
+	var failedTests []*Test
 	for _, testFile := range ts.testFiles {
 		for _, test := range testFile.list {
 			if !test.result.HasRunner {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ks888/okdoc/testset"
+	"github.com/ks888/okdoc/testrunner"
 	"github.com/spf13/cobra"
 )
 
@@ -29,12 +29,15 @@ var OkdocCmd = &cobra.Command{
 			return err
 		}
 
-		testSet := new(testset.TestSet)
+		testSet := new(testrunner.TestSet)
 		for _, docpath := range docs {
 			testSet.AddTestFile(docpath)
 		}
 
-		testSet.RunAllTests()
+		err = testSet.RunAllTests()
+		if err != nil {
+			return err
+		}
 		testSet.PrintTestStats()
 
 		return nil
