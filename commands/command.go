@@ -16,12 +16,12 @@ const (
 )
 
 var OkdocCmd = &cobra.Command{
-	Use:   "okdoc: ",
+	Use:   "okdoc [flags] [target dir/file]",
 	Short: "okdoc tests your documents",
 	Long:  "okdoc tests your documents",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return errors.New("The number of args must be 1")
+			return errors.New("target dir/file is not specified")
 		}
 		path := args[0]
 
