@@ -8,6 +8,8 @@ import (
 	"path"
 	"runtime"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type TestResult struct {
@@ -40,12 +42,11 @@ func dockerRunning() (bool, string) {
 }
 
 func runCmdByDocker(cmd, testFilePath string) (bool, string) {
-	dockerImage := "hugo:latest"
 	dockerTestDir := "/tmp/okdoc/"
 	dockerTestFile := dockerTestDir + path.Base(testFilePath)
 	volumeMapping := path.Dir(testFilePath) + ":" + dockerTestDir
 
-	args := []string{"run", "-v", volumeMapping, dockerImage, cmd, dockerTestFile}
+	args := []string{"run", "-v", volumeMapping, viper.GetString("docker-image"), cmd, dockerTestFile}
 
 	out, err := exec.Command("docker", args...).CombinedOutput()
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ks888/okdoc/testrunner"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -67,4 +68,9 @@ func collectDocs(path, ext string) ([]string, error) {
 	}
 
 	return docs, nil
+}
+
+func init() {
+	OkdocCmd.PersistentFlags().String("docker-image", "golang:1.6.2", "Docker image for isolated test env")
+	viper.BindPFlag("docker-image", OkdocCmd.PersistentFlags().Lookup("docker-image"))
 }
